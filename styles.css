@@ -116,6 +116,12 @@ body {
   background: var(--color-bg-soft);
 }
 
+.sidebar__tech-caption {
+  margin: var(--space-sm) 0 0;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
 .sidebar__tech {
   margin-top: auto;
   padding-top: var(--space-lg);

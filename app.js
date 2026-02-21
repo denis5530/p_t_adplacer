@@ -644,7 +644,8 @@
     getEl('confirmTrialModal').addEventListener('click', function (e) {
       if (e.target === this) closeConfirmTrialModal();
     });
-    getEl('btnChooseTariff').addEventListener('click', openTariffsChoice);
+    var btnChooseTariff = getEl('btnChooseTariff');
+    if (btnChooseTariff) btnChooseTariff.addEventListener('click', openTariffsChoice);
     getEl('btnUpgradeTariff').addEventListener('click', function () {
       if (state.hasTariff) toggleTariffsInCard();
       else openTariffsChoice();
