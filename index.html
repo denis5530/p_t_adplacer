@@ -64,11 +64,20 @@
           </div>
         </div>
 
-        <!-- No tariff state (shown when no active tariff) -->
+        <!-- Trial activation / no tariff (shown when no active tariff) -->
         <section class="card card--no-tariff hidden" id="noTariffBlock">
-          <div class="card__body card__body--centered">
-            <p class="card__muted">У вас нет активного тарифа</p>
-            <button type="button" class="btn btn--primary" id="btnChooseTariff">Выбрать тариф</button>
+          <div class="card__body">
+            <h2 class="card__title card__title--section">Активируйте пробный период</h2>
+            <p class="card__muted">Перед активацией рекомендуем полностью подготовить шаблоны объявлений и настроить автозагрузку.</p>
+            <p class="card__muted">Пробный период начинается сразу после активации и действует 3 дня.</p>
+            <ul class="card__list card__muted">
+              <li><strong>Пробный тариф:</strong> Базовый</li>
+              <li><strong>Срок действия:</strong> 3 дня</li>
+              <li>Ограничения соответствуют тарифу «Базовый»</li>
+            </ul>
+            <button type="button" class="btn btn--primary" id="btnActivateTrial">Активировать пробный период</button>
+            <p class="card__muted card__muted--sm" style="margin-top: 1rem;">Или выберите тариф для оплаты</p>
+            <button type="button" class="btn btn--secondary btn--sm" id="btnChooseTariff">Выбрать тариф</button>
           </div>
         </section>
 
@@ -300,11 +309,32 @@
         <button type="button" class="modal__close" id="confirmBalanceClose" aria-label="Закрыть">&times;</button>
       </div>
       <div class="modal__body">
+        <p class="modal__line modal__line--warning hidden" id="confirmBalanceTrialWarning">Вы переходите на платный тариф. Оставшиеся дни пробного периода будут аннулированы.</p>
         <p class="modal__line" id="confirmBalanceText">Будет списано 1 000 монет с вашего баланса. Вы уверены?</p>
       </div>
       <div class="modal__footer">
         <button type="button" class="btn btn--secondary" id="confirmBalanceCancel">Отмена</button>
         <button type="button" class="btn btn--primary" id="confirmBalanceConfirm">Списать монеты</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: подтверждение активации пробного периода -->
+  <div class="modal-overlay hidden" id="confirmTrialModal">
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title">Подтверждение активации пробного периода</h2>
+        <button type="button" class="modal__close" id="confirmTrialClose" aria-label="Закрыть">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__line">Пробный период «Базовый» будет активирован немедленно и продлится 3 дня.</p>
+        <p class="modal__line">Убедитесь, что вы уже настроили шаблоны объявлений и автозагрузку.</p>
+        <p class="modal__line">Отсчёт времени начинается сразу после активации.</p>
+        <p class="modal__line modal__line--muted modal__line--sm">Пробный период нельзя поставить на паузу. Оставшиеся дни не переносятся.</p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" id="confirmTrialCancel">Отмена</button>
+        <button type="button" class="btn btn--primary" id="confirmTrialConfirm">Активировать пробный период</button>
       </div>
     </div>
   </div>

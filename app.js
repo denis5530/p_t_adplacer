@@ -13,9 +13,13 @@
 
   const TIER_ORDER = ['starter', 'basic', 'advanced', 'professional'];
 
+  const TRIAL_DAYS = 3;
+  const TRIAL_TIER = 'basic';
+
   const state = {
     hasTariff: true,
     currentTier: 'advanced',
+    isTrial: false,
     endDate: '28.02.2026',
     endTime: '23:59',
     paidAt: '26.02.2026 14:30',
@@ -118,6 +122,9 @@
     if (!state.hasTariff || isTariffExpired()) {
       return { coins: newPrice, isProrated: false, remainingDays: PERIOD_DAYS, fullPrice: newPrice };
     }
+    if (state.isTrial && targetTier !== state.currentTier) {
+      return { coins: newPrice, isProrated: false, remainingDays: 0, fullPrice: newPrice };
+    }
     var currentPrice = TARIFFS[state.currentTier] ? TARIFFS[state.currentTier].price : 0;
     if (TIER_ORDER.indexOf(targetTier) <= TIER_ORDER.indexOf(state.currentTier)) {
       return { coins: 0, isProrated: false, remainingDays: 0, fullPrice: newPrice };
@@ -185,7 +192,7 @@
     if (!t) return;
 
     var expired = isTariffExpired();
-    getEl('currentTariffName').textContent = expired ? 'Неактивен' : t.name;
+    getEl('currentTariffName').textContent = expired ? 'Неактивен' : (state.isTrial ? t.name + ' (пробный)' : t.name);
     const upgradeBtn = getEl('btnUpgradeTariff');
     upgradeBtn.textContent = state.tariffsExpanded ? 'Скрыть тарифы' : (expired ? 'Подключить тариф' : 'Улучшить тариф');
     upgradeBtn.className = 'btn btn--sm ' + (state.tariffsExpanded ? 'btn--secondary' : 'btn--primary');
@@ -236,7 +243,7 @@
 
   function getButtonConfig(tier) {
     if (!state.hasTariff || isTariffExpired()) return { text: 'Выбрать тариф', action: 'choose', disabled: false };
-    if (tier === state.currentTier) return { text: 'Текущий тариф', action: 'current', disabled: true };
+    if (tier === state.currentTier) return { text: state.isTrial ? 'Текущий тариф (пробный)' : 'Текущий тариф', action: 'current', disabled: true };
     const currentIdx = TIER_ORDER.indexOf(state.currentTier);
     const tierIdx = TIER_ORDER.indexOf(tier);
     if (tierIdx < currentIdx) return { text: 'Недоступно', action: 'downgrade', disabled: true };
@@ -313,9 +320,17 @@
   }
 
   function openConfirmBalanceModal() {
+    if (!state.upgradeTargetTier) return;
     const price = getPaymentPrice();
     getEl('confirmBalanceText').textContent = 'Будет списано ' + formatCoins(price) + ' с вашего баланса. Вы уверены?';
+    var trialWarn = getEl('confirmBalanceTrialWarning');
+    toggleHidden(trialWarn, !state.isTrial);
     getEl('confirmBalanceModal').classList.remove('hidden');
+  }
+
+  function confirmBalanceAndOpenPayment() {
+    closeConfirmBalanceModal();
+    openPaymentModal(state.upgradeTargetTier);
   }
 
   function closeConfirmBalanceModal() {
@@ -340,6 +355,7 @@
     state.balance -= price;
     state.currentTier = state.upgradeTargetTier;
     if (!state.hasTariff) state.hasTariff = true;
+    state.isTrial = false;
     if (!(cost.isProrated && cost.remainingDays > 0)) setTariffPeriodFromNow();
     state.upgradeTargetTier = null;
     closeConfirmBalanceModal();
@@ -364,6 +380,7 @@
     var cost = getUpgradeCost(state.upgradeTargetTier);
     state.currentTier = state.upgradeTargetTier;
     if (!state.hasTariff) state.hasTariff = true;
+    state.isTrial = false;
     if (!(cost.isProrated && cost.remainingDays > 0)) setTariffPeriodFromNow();
     state.upgradeTargetTier = null;
     closeTariffQrModal();
@@ -433,10 +450,11 @@
   function chooseTariff(tier) {
     if (!state.hasTariff || isTariffExpired()) {
       state.upgradeTargetTier = tier;
-      openPaymentModal(tier);
+      openConfirmBalanceModal();
       closeTariffsChoice();
     } else if (TIER_ORDER.indexOf(tier) > TIER_ORDER.indexOf(state.currentTier)) {
-      openPaymentModal(tier);
+      state.upgradeTargetTier = tier;
+      openConfirmBalanceModal();
     }
     render();
   }
@@ -479,7 +497,52 @@
     btn.className = 'btn btn--sm ' + (state.tariffsExpanded ? 'btn--secondary' : 'btn--primary');
   }
 
+  function checkTrialEnded() {
+    if (!state.isTrial || !state.hasTariff) return;
+    var endDate = parseEndDate(state.endDate);
+    if (!endDate) return;
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+    if (endDate >= today) return;
+    if (state.autoRenew && state.balance >= (TARIFFS[TRIAL_TIER]?.price ?? 0)) {
+      state.balance -= TARIFFS[TRIAL_TIER].price;
+      state.isTrial = false;
+      setTariffPeriodFromNow();
+      showToast('Тариф «Базовый» активирован');
+    } else {
+      state.hasTariff = false;
+      state.isTrial = false;
+      showToast(state.autoRenew ? 'Пробный период завершён. Недостаточно монет для автопродления.' : 'Пробный период завершён');
+    }
+  }
+
+  function openConfirmTrialModal() {
+    getEl('confirmTrialModal').classList.remove('hidden');
+  }
+
+  function closeConfirmTrialModal() {
+    getEl('confirmTrialModal').classList.add('hidden');
+  }
+
+  function activateTrial() {
+    state.hasTariff = true;
+    state.currentTier = TRIAL_TIER;
+    state.isTrial = true;
+    var end = new Date();
+    end.setDate(end.getDate() + TRIAL_DAYS);
+    state.endDate = formatDateDDMMYYYY(end);
+    state.endTime = '23:59';
+    state.nextChargeDate = state.endDate;
+    state.nextChargeTime = state.endTime;
+    state.paidAt = '—';
+    closeConfirmTrialModal();
+    render();
+    showToast('Пробный период активирован');
+  }
+
   function render() {
+    checkTrialEnded();
     renderBalance();
     renderNoTariffBlock();
     renderCurrentTariff();
@@ -574,6 +637,13 @@
       render();
     });
 
+    getEl('btnActivateTrial').addEventListener('click', openConfirmTrialModal);
+    getEl('confirmTrialClose').addEventListener('click', closeConfirmTrialModal);
+    getEl('confirmTrialCancel').addEventListener('click', closeConfirmTrialModal);
+    getEl('confirmTrialConfirm').addEventListener('click', activateTrial);
+    getEl('confirmTrialModal').addEventListener('click', function (e) {
+      if (e.target === this) closeConfirmTrialModal();
+    });
     getEl('btnChooseTariff').addEventListener('click', openTariffsChoice);
     getEl('btnUpgradeTariff').addEventListener('click', function () {
       if (state.hasTariff) toggleTariffsInCard();
@@ -592,12 +662,12 @@
         updatePaymentDetail();
       });
     });
-    getEl('paymentBtnBalance').addEventListener('click', openConfirmBalanceModal);
+    getEl('paymentBtnBalance').addEventListener('click', applyBalancePayment);
     getEl('paymentBtnSbp').addEventListener('click', openTariffQrModal);
 
     getEl('confirmBalanceClose').addEventListener('click', closeConfirmBalanceModal);
     getEl('confirmBalanceCancel').addEventListener('click', closeConfirmBalanceModal);
-    getEl('confirmBalanceConfirm').addEventListener('click', applyBalancePayment);
+    getEl('confirmBalanceConfirm').addEventListener('click', confirmBalanceAndOpenPayment);
     getEl('confirmBalanceModal').addEventListener('click', function (e) {
       if (e.target === this) closeConfirmBalanceModal();
     });
@@ -631,11 +701,18 @@
   window.AdPlacerTariffs = {
     setScenario: function (key) {
       const scenarios = {
-        noTariff: () => { state.hasTariff = false; state.currentTier = 'advanced'; },
-        active: () => { state.hasTariff = true; state.currentTier = 'advanced'; state.autoRenew = true; state.endingSoonDays = null; state.balance = 5000; },
-        autoRenew: () => { state.hasTariff = true; state.currentTier = 'advanced'; state.autoRenew = true; state.balance = 5000; },
-        insufficientCoins: () => { state.hasTariff = true; state.currentTier = 'advanced'; state.autoRenew = true; state.balance = 200; },
-        endingSoon: () => { state.hasTariff = true; state.currentTier = 'advanced'; state.autoRenew = true; state.endingSoonDays = 3; state.balance = 5000; }
+        noTariff: () => { state.hasTariff = false; state.currentTier = 'advanced'; state.isTrial = false; },
+        trial: function () {
+          state.hasTariff = true; state.currentTier = 'basic'; state.isTrial = true;
+          var end = new Date(); end.setDate(end.getDate() + 3);
+          state.endDate = formatDateDDMMYYYY(end); state.endTime = '23:59';
+          state.nextChargeDate = state.endDate; state.nextChargeTime = '23:59';
+          state.paidAt = '—'; state.autoRenew = false; state.balance = 5000;
+        },
+        active: () => { state.hasTariff = true; state.currentTier = 'advanced'; state.isTrial = false; state.autoRenew = true; state.endingSoonDays = null; state.balance = 5000; },
+        autoRenew: () => { state.hasTariff = true; state.currentTier = 'advanced'; state.isTrial = false; state.autoRenew = true; state.balance = 5000; },
+        insufficientCoins: () => { state.hasTariff = true; state.currentTier = 'advanced'; state.isTrial = false; state.autoRenew = true; state.balance = 200; },
+        endingSoon: () => { state.hasTariff = true; state.currentTier = 'advanced'; state.isTrial = false; state.autoRenew = true; state.endingSoonDays = 3; state.balance = 5000; }
       };
       if (scenarios[key]) { scenarios[key](); render(); }
     },

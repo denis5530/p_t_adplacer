@@ -305,6 +305,27 @@ body {
   font-size: var(--text-base);
 }
 
+.card__muted--sm {
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.card__title--section {
+  margin: 0 0 var(--space-md);
+  font-size: var(--text-lg);
+}
+
+.card__list {
+  margin: 0 0 var(--space-md);
+  padding-left: 1.25rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+}
+
+.card__list li {
+  margin-bottom: var(--space-xs);
+}
+
 /* No tariff card — soft, not aggressive */
 .card--no-tariff {
   border-color: var(--color-border);
@@ -766,6 +787,15 @@ body {
 
 .modal__line--muted {
   color: var(--color-text-secondary);
+}
+
+.modal__line--sm {
+  font-size: 12px;
+}
+
+.modal__line--warning {
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
 }
 
 .modal__footer {
