@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тарифы -- AdPlacer</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar__logo">AdPlacer</div>
+      <nav class="sidebar__nav">
+        <a href="#" class="sidebar__item">Дашборд</a>
+        <a href="#" class="sidebar__item">Объявления</a>
+        <a href="#" class="sidebar__item sidebar__item--active">Тарифы</a>
+        <a href="#" class="sidebar__item">Настройки</a>
+      </nav>
+      <div class="sidebar__tech">
+        <label class="sidebar__tech-label">Активный тариф</label>
+        <select class="sidebar__tech-select" id="selectActiveTariff" title="Тест: какой тариф активен">
+          <option value="none">Неактивен</option>
+          <option value="starter">Старт</option>
+          <option value="basic">Базовый</option>
+          <option value="advanced">Продвинутый</option>
+          <option value="professional">Профессиональный</option>
+        </select>
+        <label class="sidebar__tech-label">Дата тарифа</label>
+        <select class="sidebar__tech-select" id="selectTariffDate" title="Тест: дата окончания тарифа">
+          <option value="default">28.02.2026</option>
+          <option value="expired">Истёк</option>
+          <option value="none">Новый аккаунт</option>
+          <option value="custom">Своя дата</option>
+        </select>
+        <div class="sidebar__tech-custom hidden" id="sidebarCustomDate">
+          <input type="date" class="sidebar__tech-input" id="inputTariffDate" title="Выберите дату окончания тарифа">
+          <button type="button" class="btn btn--secondary btn--sm sidebar__tech-btn" id="btnApplyDate">Применить</button>
+        </div>
+        <button type="button" class="btn btn--secondary btn--sm sidebar__tech-btn" id="btnReduceBalance" title="Тест: уменьшить баланс">− Баланс</button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <header class="main__header">
+        <h1 class="main__title">Тарифы</h1>
+      </header>
+
+      <div class="content">
+        <!-- Balance block -->
+        <div class="balance-block" id="balanceBlock">
+          <div class="balance-block__inner">
+            <span class="balance-block__label">Баланс</span>
+            <span class="balance-block__value" id="balanceValue">1 000 монет</span>
+            <button type="button" class="btn btn--secondary btn--sm" id="btnTopUp">Пополнить баланс</button>
+            <div class="balance-block__warning hidden" id="balanceWarning">
+              <button type="button" class="btn btn--danger btn--sm" id="btnTopUpNow">Пополнить сейчас</button>
+              <span class="balance-block__warning-text">Недостаточно монет для продления тарифа</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- No tariff state (shown when no active tariff) -->
+        <section class="card card--no-tariff hidden" id="noTariffBlock">
+          <div class="card__body card__body--centered">
+            <p class="card__muted">У вас нет активного тарифа</p>
+            <button type="button" class="btn btn--primary" id="btnChooseTariff">Выбрать тариф</button>
+          </div>
+        </section>
+
+        <!-- Current tariff block (hidden when no tariff) -->
+        <section class="card card--current" id="currentTariffBlock">
+          <div class="card__header">
+            <h2 class="card__title">Текущий тариф</h2>
+            <div class="card__header-right">
+              <span class="badge badge--active" id="currentTariffStatus">Активен</span>
+              <span class="current-tariff__meta"><strong id="currentTariffEnd">28.02.2026 23:59</strong></span>
+            </div>
+          </div>
+          <div class="card__body">
+            <div class="current-tariff__head">
+              <h3 class="current-tariff__name" id="currentTariffName">Продвинутый</h3>
+              <button type="button" class="btn btn--primary btn--sm" id="btnUpgradeTariff">Улучшить тариф</button>
+            </div>
+
+            <div class="current-tariff__expand hidden" id="currentTariffExpand">
+              <p class="current-tariff__expand-hint" id="currentTariffExpandHint">Можно перейти только на более высокий тариф. Понижение до окончания периода недоступно.</p>
+              <div class="tariffs-grid tariffs-grid--in-card" id="tariffsGridInCard">
+                <article class="tariff-card" data-tier="starter">
+                  <div class="tariff-card__header">
+                    <h3 class="tariff-card__name">Старт</h3>
+                    <div class="tariff-card__limits">
+                    <span class="tariff-card__limits-line">1 автозагрузка</span>
+                    <span class="tariff-card__limits-line">500 объявлений</span>
+                  </div>
+                  </div>
+                  <div class="tariff-card__price-wrap">
+                    <span class="tariff-card__price">490 монет</span>
+                  </div>
+                  <button type="button" class="btn btn--secondary tariff-card__btn" data-action="choose">Выбрать тариф</button>
+                </article>
+                <article class="tariff-card" data-tier="basic">
+                  <div class="tariff-card__header">
+                    <h3 class="tariff-card__name">Базовый</h3>
+                    <div class="tariff-card__limits">
+                    <span class="tariff-card__limits-line">1 автозагрузка</span>
+                    <span class="tariff-card__limits-line">50 000 объявлений</span>
+                  </div>
+                  </div>
+                  <div class="tariff-card__price-wrap">
+                    <span class="tariff-card__price">1 490 монет</span>
+                  </div>
+                  <button type="button" class="btn btn--secondary tariff-card__btn" data-action="choose">Выбрать тариф</button>
+                </article>
+                <article class="tariff-card" data-tier="advanced">
+                  <div class="tariff-card__header">
+                    <h3 class="tariff-card__name">Продвинутый</h3>
+                    <div class="tariff-card__limits">
+                    <span class="tariff-card__limits-line">3 автозагрузки</span>
+                    <span class="tariff-card__limits-line">150 000 объявлений</span>
+                  </div>
+                  </div>
+                  <div class="tariff-card__price-wrap">
+                    <span class="tariff-card__price">3 490 монет</span>
+                  </div>
+                  <button type="button" class="btn btn--secondary tariff-card__btn" data-action="current" disabled>Текущий тариф</button>
+                </article>
+                <article class="tariff-card" data-tier="professional">
+                  <div class="tariff-card__header">
+                    <h3 class="tariff-card__name">Профессиональный</h3>
+                    <div class="tariff-card__limits">
+                    <span class="tariff-card__limits-line">10 автозагрузок</span>
+                    <span class="tariff-card__limits-line">500 000 объявлений</span>
+                  </div>
+                  </div>
+                  <div class="tariff-card__price-wrap">
+                    <span class="tariff-card__price">8 940 монет</span>
+                  </div>
+                  <button type="button" class="btn btn--primary tariff-card__btn" data-action="upgrade">Расширить тариф</button>
+                </article>
+              </div>
+            </div>
+            <div class="current-tariff__autorenew" id="currentTariffAutorenew">
+              <div class="toggle-row">
+                <span class="toggle-row__label">Автопродление тарифа <span class="toggle-row__status" id="autorenewLabelStatus">(включено)</span></span>
+                <label class="toggle">
+                  <input type="checkbox" class="toggle__input" id="autorenewToggle" checked>
+                  <span class="toggle__slider"></span>
+                </label>
+              </div>
+              <div class="autorenew-details" id="autorenewDetails">
+                <p class="autorenew-details__line">
+                  Следующее списание: <strong id="nextChargeDate">28.02.2026 23:59</strong>
+                </p>
+                <p class="autorenew-details__line">
+                  Стоимость продления: <strong id="renewalCost">1 490 монет</strong>
+                </p>
+                <p class="autorenew-details__status status--danger hidden" id="renewalInsufficient">
+                  Недостаточно монет для автопродления
+                </p>
+                <p class="autorenew-details__status status--success" id="renewalOk">
+                  Продлится автоматически
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Экран выбора тарифов (скрыт по умолчанию, открывается по «Улучшить тариф» / «Выбрать тариф») -->
+        <section class="tariffs-choice hidden" id="tariffsChoiceView">
+          <button type="button" class="tariffs-choice__back" id="tariffsChoiceBack">← Назад</button>
+          <h2 class="section-title" id="tariffsChoiceTitle">Улучшить тариф</h2>
+          <p class="tariffs-choice__hint" id="tariffsChoiceHint">Можно перейти только на более высокий тариф. Понижение до окончания периода недоступно.</p>
+          <div class="tariffs-grid" id="tariffsGrid">
+            <article class="tariff-card" data-tier="starter">
+              <div class="tariff-card__header">
+                <h3 class="tariff-card__name">Старт</h3>
+                <div class="tariff-card__limits">
+                    <span class="tariff-card__limits-line">1 автозагрузка</span>
+                    <span class="tariff-card__limits-line">500 объявлений</span>
+                  </div>
+              </div>
+              <div class="tariff-card__price-wrap">
+                <span class="tariff-card__price">490 монет</span>
+              </div>
+              <button type="button" class="btn btn--secondary tariff-card__btn" data-action="choose">Выбрать тариф</button>
+            </article>
+            <article class="tariff-card" data-tier="basic">
+              <div class="tariff-card__header">
+                <h3 class="tariff-card__name">Базовый</h3>
+                <div class="tariff-card__limits">
+                    <span class="tariff-card__limits-line">1 автозагрузка</span>
+                    <span class="tariff-card__limits-line">50 000 объявлений</span>
+                  </div>
+              </div>
+              <div class="tariff-card__price-wrap">
+                <span class="tariff-card__price">1 490 монет</span>
+              </div>
+              <button type="button" class="btn btn--secondary tariff-card__btn" data-action="choose">Выбрать тариф</button>
+            </article>
+            <article class="tariff-card tariff-card--current" data-tier="advanced">
+              <div class="tariff-card__header">
+                <h3 class="tariff-card__name">Продвинутый</h3>
+                <div class="tariff-card__limits">
+                    <span class="tariff-card__limits-line">3 автозагрузки</span>
+                    <span class="tariff-card__limits-line">150 000 объявлений</span>
+                  </div>
+              </div>
+              <div class="tariff-card__price-wrap">
+                <span class="tariff-card__price">3 490 монет</span>
+              </div>
+              <button type="button" class="btn btn--secondary tariff-card__btn" data-action="current" disabled>Текущий тариф</button>
+            </article>
+            <article class="tariff-card" data-tier="professional">
+              <div class="tariff-card__header">
+                <h3 class="tariff-card__name">Профессиональный</h3>
+                <div class="tariff-card__limits">
+                    <span class="tariff-card__limits-line">10 автозагрузок</span>
+                    <span class="tariff-card__limits-line">500 000 объявлений</span>
+                  </div>
+              </div>
+              <div class="tariff-card__price-wrap">
+                <span class="tariff-card__price">8 940 монет</span>
+              </div>
+              <button type="button" class="btn btn--primary tariff-card__btn" data-action="upgrade">Расширить тариф</button>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: пополнение баланса -->
+  <div class="modal-overlay modal-overlay--topup hidden" id="topUpModal">
+    <div class="modal modal--topup" id="topUpModalBox">
+      <div class="modal__header">
+        <h2 class="modal__title" id="topUpModalTitle">Пополнение баланса</h2>
+        <button type="button" class="modal__close" id="topUpModalClose" aria-label="Закрыть">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="topup-step" id="topUpStepForm">
+          <label class="topup-label" for="topUpInput">Количество монет</label>
+          <input type="number" id="topUpInput" class="topup-input" min="100" step="1" placeholder="Минимум 100 монет" inputmode="numeric">
+          <p class="topup-summary">К оплате: <strong id="topUpToPay">0 ₽</strong></p>
+          <button type="button" class="btn btn--primary topup-submit" id="topUpSubmit" disabled>Оплатить по СБП</button>
+          <p class="topup-disclaimer">Оплата производится через Систему быстрых платежей по QR-коду</p>
+        </div>
+        <div class="topup-step hidden" id="topUpStepQr">
+          <div class="topup-qr-placeholder" id="topUpQrPlaceholder"></div>
+          <button type="button" class="btn btn--secondary topup-back" id="topUpBack">Назад</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Уведомление -->
+  <div class="toast hidden" id="toast">Баланс успешно пополнен</div>
+
+  <!-- Modal: выбор способа оплаты тарифа -->
+  <div class="modal-overlay hidden" id="paymentModal">
+    <div class="modal modal--payment">
+      <div class="modal__header">
+        <h2 class="modal__title" id="paymentModalTitle">Оплата тарифа</h2>
+        <button type="button" class="modal__close" id="paymentModalClose" aria-label="Закрыть">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="payment-summary" id="paymentSummary">Тариф Продвинутый — 3 490 монет</p>
+        <div class="payment-methods" id="paymentMethods">
+          <button type="button" class="payment-method-card" data-method="balance" id="paymentCardBalance">
+            <span class="payment-method-card__label">Оплатить из баланса</span>
+          </button>
+          <button type="button" class="payment-method-card" data-method="sbp" id="paymentCardSbp">
+            <span class="payment-method-card__label">Оплатить через СБП</span>
+          </button>
+        </div>
+        <div class="payment-detail payment-detail--balance hidden" id="paymentDetailBalance">
+          <p class="payment-detail__line">Баланс: <strong id="paymentBalance">0 монет</strong></p>
+          <p class="payment-detail__line">К оплате: <strong id="paymentCostCoins">0 монет</strong></p>
+          <p class="payment-detail__status payment-detail__status--success hidden" id="paymentBalanceOk">Монет достаточно для оплаты</p>
+          <p class="payment-detail__status payment-detail__status--warning hidden" id="paymentBalanceLow">Недостаточно монет для оплаты</p>
+          <button type="button" class="btn btn--primary payment-detail__btn" id="paymentBtnBalance" disabled>Подтвердить списание</button>
+        </div>
+        <div class="payment-detail payment-detail--sbp hidden" id="paymentDetailSbp">
+          <p class="payment-detail__line">К оплате: <strong id="paymentCostRubles">0 ₽</strong></p>
+          <button type="button" class="btn btn--primary payment-detail__btn" id="paymentBtnSbp">Оплатить по СБП</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: подтверждение списания с баланса -->
+  <div class="modal-overlay hidden" id="confirmBalanceModal">
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title">Подтверждение списания</h2>
+        <button type="button" class="modal__close" id="confirmBalanceClose" aria-label="Закрыть">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__line" id="confirmBalanceText">Будет списано 1 000 монет с вашего баланса. Вы уверены?</p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" id="confirmBalanceCancel">Отмена</button>
+        <button type="button" class="btn btn--primary" id="confirmBalanceConfirm">Списать монеты</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: QR для оплаты тарифа по СБП (открывается из payment modal) -->
+  <div class="modal-overlay modal-overlay--topup hidden" id="tariffQrModal">
+    <div class="modal modal--topup">
+      <div class="modal__header">
+        <h2 class="modal__title">Оплата по СБП</h2>
+        <button type="button" class="modal__close" id="tariffQrClose" aria-label="Закрыть">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="topup-summary">Сумма к оплате: <strong id="tariffQrAmount">0 ₽</strong></p>
+        <div class="topup-qr-placeholder" id="tariffQrPlaceholder"></div>
+        <p class="payment-detail__status payment-detail__status--muted" id="tariffQrStatus">Ожидание оплаты</p>
+        <button type="button" class="btn btn--secondary" id="tariffQrBack">Назад</button>
+        <button type="button" class="btn btn--primary topup-submit payment-detail__btn" id="tariffQrDone">Я оплатил</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
